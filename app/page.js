@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
@@ -74,6 +74,20 @@ export default function Home() {
     }
   };
 
+  useEffect(() => {
+    setApiinfo((info) => ({"apikey": localStorage.getItem('apikey'), "Organization": localStorage.getItem('Organization')}))
+  }, [])
+
+  console.log(localStorage.getItem('apikey'))
+
+  useEffect(() => {
+    localStorage.setItem("apikey", apiinfo['apikey'])
+  }, [apiinfo['apikey']])
+
+  useEffect(() => {
+    localStorage.setItem("Organization", apiinfo['Organization'])
+  }, [apiinfo['Organization']])
+
   return (
     <Container maxWidth="md">
       <h1>Test ChatGPT</h1>
@@ -84,14 +98,15 @@ export default function Home() {
         <AccordionDetails>
           <TextField 
             label='Organization ID' 
-            type="password" 
-            sx={{marginRight: '4px'}} 
+            type="text" 
+            sx={{marginRight: '4px', marginBottom: '8px'}} 
             value={apiinfo['Organization']}
-            onChange={(e) => setApiinfo((info) => ({...info, "Organization": e.target.value}))}
+            onChange={(e) => {setApiinfo((info) => ({...info, "Organization": e.target.value}))}}
             ></TextField>
           <TextField 
             label='API KEY' 
             type="password"
+            sx={{marginBottom: '8px'}}
             value={apiinfo['apikey']}
             onChange={(e) => setApiinfo((info) => ({...info, "apikey": e.target.value}))}
             ></TextField>
