@@ -5,6 +5,7 @@ const prefixPath = isProd ? '/ChatGPT_Playground' : ''
 
 const nextConfig = {
   assetPrefix: prefixPath,
+  basePath: prefixPath,
   output: 'export',
   distDir: 'docs'
 }
