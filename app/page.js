@@ -11,6 +11,7 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { Typography } from '@mui/material';
 
 
 const AxiosSWR = async (url, options) => {
@@ -71,18 +72,13 @@ export default function Home() {
   const [inputText, setInputText] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState(null); 
+  const [editid, setEditid] = useState(null);
   const [apiinfo, setApiinfo] = useState({'Organization': "", 'apikey': ""}); 
 
   useEffect(() => {
     setData(() => {
-      console.log("gotdata")
-      console.log(gotdata)
-      console.log("senddata")
-      console.log(senddata)
       const tmp = [...senddata, ...gotdata];
       tmp.sort((item1, item2) => item1.id - item2.id);
-      console.log('fulldata')
-      console.log(tmp)
       return tmp
     })
   }, [senddata, gotdata])
@@ -96,11 +92,13 @@ export default function Home() {
       setError(error.message);
       setSenddata((prev) => {
         prev.pop();
-        return prev
+        const newdata = [...prev]
+        return newdata
       })
     } finally {
       setIsSending(false);
       setInputText("");
+      setEditid(null)
     }
   };
 
@@ -160,6 +158,14 @@ export default function Home() {
               <Box>
                 {renderTextWithLineBreaks(d.content)}
               </Box>
+              {d['id'] === Math.max(...senddata.map(item => item.id)) ? (
+                <Box sx={{margin: '1em'}}><Button onClick={() => {
+                  setEditid(d['id'])
+                  setInputText(d['content'])
+                }} variant='contained'>Edit</Button>
+                {editid ? <Button onClick={() => setEditid(null)}>Cancel</Button> : ""}
+                </Box>
+              ): ''}
               <hr></hr>
             </Box>
           )
@@ -167,6 +173,7 @@ export default function Home() {
         {isSending ? <CircularProgress color="secondary" /> : ""}
       </Box>
       <Box>
+        <Typography>{editid ? 'Edit Mode' : ''}</Typography>
         <TextField
           id="outlined-multiline-flexible"
           label="message"
@@ -179,7 +186,23 @@ export default function Home() {
         />
         <Button sx={{margin: '1em'}}
           onClick={() => {
-            setSenddata((prev) => [...prev, {"id": getNextId(senddata, gotdata) ,"role": "user", "content": inputText }])
+            setSenddata((prev) => {
+              if (editid === null) {
+                return [...prev, {"id": getNextId(senddata, gotdata) ,"role": "user", "content": inputText }]
+              } else {
+                const idx = prev.findIndex((d) => d['id'] === editid);
+                let updatedData = [...prev];
+                updatedData[idx]['content'] = inputText;
+                return updatedData
+              }
+            })
+            if (editid !== null) {
+              setGotdata((prev) => {
+                prev.pop();
+                const newdata = [...prev]
+                return newdata
+              })
+            }
           }} variant="contained" disabled={isSending} >{isSending ? "sending..." : "send"}</Button>
       </Box>
     </Container>
