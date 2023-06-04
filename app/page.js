@@ -33,8 +33,10 @@ const renderTextWithLineBreaks = (text) => {
 };
 
 
-async function processText(text, data, setData, apiinfo) {
-  const newData = [...data, { "role": "user", "content": text }];
+  async function processText(text, senddata, gotdata, setGotdata, apiinfo, nextid) {
+  const tmp = [...senddata, ...gotdata];
+  tmp.sort((item1, item2) => item1.id - item2.id);
+
   const response = await AxiosSWR(
     "https://api.openai.com/v1/chat/completions",
     {
@@ -46,28 +48,56 @@ async function processText(text, data, setData, apiinfo) {
       },
       data: {
         "model": "gpt-3.5-turbo",
-        "messages": newData
+        "messages": tmp.map(({ id, ...rest }) => rest)
       }
     }
   );
-  setData((d) => [...d, { "role": "user", "content": text }]);
-  setData((d) => [...d, { "role": "assistant", "content": response.choices[0].message.content }]);
+  setGotdata((d) => [...d, {"id": nextid, "role": "assistant", "content": response.choices[0].message.content }]);
+}
+
+function getNextId(senddata, gotdata) {
+  if (senddata.length === 0 && gotdata.length === 0) {
+    return 1;
+  }
+  const allItems = [...senddata, ...gotdata];
+  const maxId = Math.max(...allItems.map(item => item.id));
+  return maxId + 1;
 }
 
 export default function Home() {
   const [data, setData] = useState([]);
+  const [senddata, setSenddata] = useState([]);
+  const [gotdata, setGotdata] = useState([]);
   const [inputText, setInputText] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState(null); 
   const [apiinfo, setApiinfo] = useState({'Organization': "", 'apikey': ""}); 
 
+  useEffect(() => {
+    setData(() => {
+      console.log("gotdata")
+      console.log(gotdata)
+      console.log("senddata")
+      console.log(senddata)
+      const tmp = [...senddata, ...gotdata];
+      tmp.sort((item1, item2) => item1.id - item2.id);
+      console.log('fulldata')
+      console.log(tmp)
+      return tmp
+    })
+  }, [senddata, gotdata])
+
   const handleSubmit = async () => {
     setIsSending(true);
     setError(null);
     try {
-      await processText(inputText, data, setData, apiinfo);
+      await processText(inputText, senddata, gotdata, setGotdata, apiinfo, getNextId(senddata, gotdata));
     } catch (error) {
       setError(error.message);
+      setSenddata((prev) => {
+        prev.pop();
+        return prev
+      })
     } finally {
       setIsSending(false);
       setInputText("");
@@ -75,17 +105,26 @@ export default function Home() {
   };
 
   useEffect(() => {
-    setApiinfo((info) => ({"apikey": localStorage.getItem('apikey'), "Organization": localStorage.getItem('Organization')}))
-  }, [])
-
-  console.log(localStorage.getItem('apikey'))
+    if (senddata.length > 0) {
+      handleSubmit()
+    }
+  }, [senddata])
 
   useEffect(() => {
-    localStorage.setItem("apikey", apiinfo['apikey'])
+    setApiinfo(() => ({"apikey": localStorage.getItem('apikey'), "Organization": localStorage.getItem('Organization')}))
+  }, [])
+
+
+  useEffect(() => {
+    if (apiinfo['apikey'] !== "") {
+      localStorage.setItem("apikey", apiinfo['apikey'])
+    }
   }, [apiinfo['apikey']])
 
   useEffect(() => {
-    localStorage.setItem("Organization", apiinfo['Organization'])
+    if (apiinfo['Organization'] !== "") {
+      localStorage.setItem("Organization", apiinfo['Organization'])
+    }
   }, [apiinfo['Organization']])
 
   return (
@@ -139,7 +178,9 @@ export default function Home() {
           disabled={isSending} 
         />
         <Button sx={{margin: '1em'}}
-          onClick={handleSubmit} variant="contained" disabled={isSending} >{isSending ? "sending..." : "send"}</Button>
+          onClick={() => {
+            setSenddata((prev) => [...prev, {"id": getNextId(senddata, gotdata) ,"role": "user", "content": inputText }])
+          }} variant="contained" disabled={isSending} >{isSending ? "sending..." : "send"}</Button>
       </Box>
     </Container>
   );
