@@ -158,12 +158,17 @@ export default function Home() {
               <Box>
                 {renderTextWithLineBreaks(d.content)}
               </Box>
+              <Box>
+
+              </Box>
               {d['id'] === Math.max(...senddata.map(item => item.id)) ? (
                 <Box sx={{margin: '1em'}}><Button onClick={() => {
                   setEditid(d['id'])
                   setInputText(d['content'])
-                }} variant='contained'>Edit</Button>
-                {editid ? <Button onClick={() => setEditid(null)}>Cancel</Button> : ""}
+                }} variant='contained'
+                  disabled={editid || isSending ? true : false}
+                >Edit</Button>
+                {editid ? <Button onClick={() => setEditid(null)} disabled={isSending}>Cancel</Button> : ""}
                 </Box>
               ): ''}
               <hr></hr>
