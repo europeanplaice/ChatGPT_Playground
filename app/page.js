@@ -12,6 +12,10 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Typography } from '@mui/material';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import Block from '@mui/icons-material/Block';
+import Chip from '@mui/material/Chip';
+
 
 
 const AxiosSWR = async (url, options) => {
@@ -34,7 +38,7 @@ const renderTextWithLineBreaks = (text) => {
 };
 
 
-  async function processText(text, senddata, gotdata, setGotdata, apiinfo, nextid) {
+async function processText(senddata, gotdata, setGotdata, apiinfo, nextid) {
   const tmp = [...senddata, ...gotdata];
   tmp.sort((item1, item2) => item1.id - item2.id);
 
@@ -65,6 +69,46 @@ function getNextId(senddata, gotdata) {
   return maxId + 1;
 }
 
+async function checklogin(setLoggedin, apiinfo) {
+  try {
+    const response = await AxiosSWR(
+      "https://api.openai.com/v1/models",
+      {
+        method: 'GET',
+        headers: {
+          "Authorization": `Bearer ${apiinfo['apikey']}`,
+          "OpenAI-Organization": `${apiinfo['Organization']}`,
+        }
+      }
+    );
+    setLoggedin(true)
+  } catch {
+    setLoggedin(false)
+  }
+}
+
+function textsendingButtonEvent(senddata, gotdata, editid, inputText, setSenddata, setGotdata) {
+
+  setSenddata((prev) => {
+    if (editid === null) {
+      return [...prev, {"id": getNextId(senddata, gotdata) ,"role": "user", "content": inputText }]
+    } else {
+      const idx = prev.findIndex((d) => d['id'] === editid);
+      let updatedData = [...prev];
+      updatedData[idx]['content'] = inputText;
+      return updatedData
+    }
+  })
+  if (editid !== null) {
+    setGotdata((prev) => {
+      prev.pop();
+      const newdata = [...prev]
+      return newdata
+    })
+  }
+
+}
+
 export default function Home() {
   const [data, setData] = useState([]);
   const [senddata, setSenddata] = useState([]);
@@ -73,6 +117,7 @@ export default function Home() {
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState(null); 
   const [editid, setEditid] = useState(null);
+  const [loggedin, setLoggedin] = useState(null);
   const [apiinfo, setApiinfo] = useState({'Organization': "", 'apikey': ""}); 
 
   useEffect(() => {
@@ -87,7 +132,7 @@ export default function Home() {
     setIsSending(true);
     setError(null);
     try {
-      await processText(inputText, senddata, gotdata, setGotdata, apiinfo, getNextId(senddata, gotdata));
+      await processText(senddata, gotdata, setGotdata, apiinfo, getNextId(senddata, gotdata));
     } catch (error) {
       setError(error.message);
       setSenddata((prev) => {
@@ -112,6 +157,9 @@ export default function Home() {
     setApiinfo(() => ({"apikey": localStorage.getItem('apikey'), "Organization": localStorage.getItem('Organization')}))
   }, [])
 
+  useEffect(() => {
+    checklogin(setLoggedin, apiinfo)
+  }, [apiinfo])
 
   useEffect(() => {
     if (apiinfo['apikey'] !== "") {
@@ -131,7 +179,7 @@ export default function Home() {
       <Accordion sx={{marginBottom: '1em', maxWidth: '60%'}}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
-        >API Config</AccordionSummary>
+        ><span style={{marginRight: '2em', fontWeight: 700}}>API Config</span> {loggedin ? <><CheckCircleOutlineIcon color='success' sx={{marginRight: '4px'}}/>Logged in!</> : <><Block color='error' sx={{marginRight: '4px'}}/>Login failed.</>}</AccordionSummary>
         <AccordionDetails>
           <TextField 
             label='Organization ID' 
@@ -147,6 +195,7 @@ export default function Home() {
             value={apiinfo['apikey']}
             onChange={(e) => setApiinfo((info) => ({...info, "apikey": e.target.value}))}
             ></TextField>
+            <Box></Box>
         </AccordionDetails>
       </Accordion>
       {error && <Alert severity="error">{error}</Alert>}
@@ -162,13 +211,13 @@ export default function Home() {
 
               </Box>
               {d['id'] === Math.max(...senddata.map(item => item.id)) ? (
-                <Box sx={{margin: '1em'}}><Button onClick={() => {
+                <Box justifyContent="flex-end" display="flex" sx={{margin: '1em'}}><Button color='secondary' onClick={() => {
                   setEditid(d['id'])
                   setInputText(d['content'])
                 }} variant='contained'
                   disabled={editid || isSending ? true : false}
                 >Edit</Button>
-                {editid ? <Button onClick={() => setEditid(null)} disabled={isSending}>Cancel</Button> : ""}
+                {editid ? <Button color='error' sx={{marginLeft: '1em'}}onClick={() => setEditid(null)} disabled={isSending}>Cancel</Button> : ""}
                 </Box>
               ): ''}
               <hr></hr>
@@ -178,7 +227,7 @@ export default function Home() {
         {isSending ? <CircularProgress color="secondary" /> : ""}
       </Box>
       <Box>
-        <Typography>{editid ? 'Edit Mode' : ''}</Typography>
+        <Typography sx={{marginBottom: '1.5em', marginTop: '2em'}}>{editid ? <Chip label="Edit Mode" /> : ''}</Typography>
         <TextField
           id="outlined-multiline-flexible"
           label="message"
@@ -189,26 +238,10 @@ export default function Home() {
           onChange={(e) => setInputText(e.target.value)}
           disabled={isSending} 
         />
-        <Button sx={{margin: '1em'}}
-          onClick={() => {
-            setSenddata((prev) => {
-              if (editid === null) {
-                return [...prev, {"id": getNextId(senddata, gotdata) ,"role": "user", "content": inputText }]
-              } else {
-                const idx = prev.findIndex((d) => d['id'] === editid);
-                let updatedData = [...prev];
-                updatedData[idx]['content'] = inputText;
-                return updatedData
-              }
-            })
-            if (editid !== null) {
-              setGotdata((prev) => {
-                prev.pop();
-                const newdata = [...prev]
-                return newdata
-              })
-            }
-          }} variant="contained" disabled={isSending} >{isSending ? "sending..." : "send"}</Button>
+        <Box flexDirection="row" justifyContent="flex-end" display="flex">
+          <Button sx={{margin: '1em'}}
+            onClick={() => textsendingButtonEvent(senddata, gotdata, editid, inputText, setSenddata, setGotdata)} variant="contained" disabled={isSending} >{isSending ? "sending..." : "send"}</Button>
+        </Box>
       </Box>
     </Container>
   );
