@@ -1,6 +1,5 @@
-/* eslint-disable react/prop-types */
 "use client"
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
@@ -123,6 +122,7 @@ export default function Home() {
   const [editid, setEditid] = useState(null);
   const [loggedin, setLoggedin] = useState(null);
   const [apiinfo, setApiinfo] = useState({'Organization': "", 'apikey': ""}); 
+  const inputRef = useRef(null);
 
   useEffect(() => {
     setData(() => {
@@ -245,7 +245,8 @@ export default function Home() {
                 <Box justifyContent="flex-end" display="flex" sx={{margin: '1em'}}><Button color='secondary' onClick={() => {
                   setEditid(d['id'])
                   setInputText(d['content'])
-                  window.scrollTo(0, document.body.scrollHeight);
+                  inputRef.current.focus();
+                  inputRef.current.scrollIntoView();
                 }} variant='contained'
                   disabled={editid || isSending ? true : false}
                 >{editid ? 'Go to TextField On Bottom' : 'Edit'}</Button>
@@ -262,6 +263,7 @@ export default function Home() {
         <Typography sx={{marginBottom: '1.5em', marginTop: '2em'}}>{editid ? <Chip label="Edit Mode" /> : ''}</Typography>
         <TextField
           id="outlined-multiline-flexible"
+          inputRef={inputRef}
           label="message"
           multiline
           maxRows={1000}
