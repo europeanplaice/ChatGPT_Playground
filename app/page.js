@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 "use client"
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -15,6 +16,9 @@ import { Typography } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import Block from '@mui/icons-material/Block';
 import Chip from '@mui/material/Chip';
+import ReactMarkdown from 'react-markdown'
+import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter'
+import {dark} from 'react-syntax-highlighter/dist/esm/styles/prism'
 
 
 
@@ -173,13 +177,19 @@ export default function Home() {
     }
   }, [apiinfo['Organization']])
 
+  const enterPost = (keyEvent) => {
+    if (keyEvent.key === 'Enter' && (keyEvent.ctrlKey || keyEvent.metaKey)) {
+      textsendingButtonEvent(senddata, gotdata, editid, inputText, setSenddata, setGotdata)
+    }
+  }
+
   return (
     <Container maxWidth="md">
       <h1>Test ChatGPT</h1>
-      <Accordion sx={{marginBottom: '1em', maxWidth: '60%'}}>
+      <Accordion sx={{marginBottom: '1em', maxWidth: '60%'}} elevation={2}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
-        ><span style={{marginRight: '2em', fontWeight: 700}}>API Config</span> {loggedin ? <><CheckCircleOutlineIcon color='success' sx={{marginRight: '4px'}}/>Logged in!</> : <><Block color='error' sx={{marginRight: '4px'}}/>Login failed.</>}</AccordionSummary>
+        ><span style={{marginRight: '2em', fontWeight: 700}}>API Config</span> {loggedin ? <><CheckCircleOutlineIcon color='success' sx={{marginRight: '4px'}}/>Logged in!</> : <><Block color='error' sx={{marginRight: '4px'}}/>Not logged in.</>}</AccordionSummary>
         <AccordionDetails>
           <TextField 
             label='Organization ID' 
@@ -205,10 +215,31 @@ export default function Home() {
             <Box key={index}>
               <h2>{d.role}</h2>
               <Box>
-                {renderTextWithLineBreaks(d.content)}
+                {d['role'] === 'user' ? renderTextWithLineBreaks(d.content) : 
+                  <ReactMarkdown
+                  children={d.content}
+                  components={{
+                    code({node, inline, className, children, ...props}) {
+                      const match = /language-(\w+)/.exec(className || '')
+                      return !inline && match ? (
+                        <SyntaxHighlighter
+                          {...props}
+                          children={String(children).replace(/\n$/, '')}
+                          style={dark}
+                          language={match[1]}
+                          PreTag="div"
+                        />
+                      ) : (
+                        <code {...props} className={className}>
+                          {children}
+                        </code>
+                      )
+                    }
+                  }}
+                />
+                }
               </Box>
               <Box>
-
               </Box>
               {d['id'] === Math.max(...senddata.map(item => item.id)) ? (
                 <Box justifyContent="flex-end" display="flex" sx={{margin: '1em'}}><Button color='secondary' onClick={() => {
@@ -237,6 +268,7 @@ export default function Home() {
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           disabled={isSending} 
+          onKeyDown={enterPost}
         />
         <Box flexDirection="row" justifyContent="flex-end" display="flex">
           <Button sx={{margin: '1em'}}
