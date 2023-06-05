@@ -245,9 +245,10 @@ export default function Home() {
                 <Box justifyContent="flex-end" display="flex" sx={{margin: '1em'}}><Button color='secondary' onClick={() => {
                   setEditid(d['id'])
                   setInputText(d['content'])
+                  window.scrollTo(0, document.body.scrollHeight);
                 }} variant='contained'
                   disabled={editid || isSending ? true : false}
-                >Edit</Button>
+                >{editid ? 'Go to TextField On Bottom' : 'Edit'}</Button>
                 {editid ? <Button color='error' sx={{marginLeft: '1em'}}onClick={() => setEditid(null)} disabled={isSending}>Cancel</Button> : ""}
                 </Box>
               ): ''}
