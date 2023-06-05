@@ -4,7 +4,7 @@ import { Noto_Sans_JP } from 'next/font/google'
 const noto = Noto_Sans_JP ({ subsets: ['latin'], weight: ["500"],})
 
 export const metadata = {
-  title: 'Test ChatGPT',
+  title: 'ChatGPT Playground',
   description: 'Test ChatGPT',
 }
 

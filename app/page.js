@@ -185,11 +185,11 @@ export default function Home() {
 
   return (
     <Container maxWidth="md">
-      <h1>Test ChatGPT</h1>
+      <h1>ChatGPT Playground</h1>
       <Accordion sx={{marginBottom: '1em', maxWidth: '60%'}} elevation={2}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
-        ><span style={{marginRight: '2em', fontWeight: 700}}>API Config</span> {loggedin ? <><CheckCircleOutlineIcon color='success' sx={{marginRight: '4px'}}/>Logged in!</> : <><Block color='error' sx={{marginRight: '4px'}}/>Not logged in.</>}</AccordionSummary>
+        ><span style={{marginLeft: '4px', marginRight: '2em', fontWeight: 700}}>API Config</span> {loggedin ? <><CheckCircleOutlineIcon color='success' sx={{marginRight: '4px'}}/>Logged in!</> : <><Block color='error' sx={{marginRight: '4px'}}/>Not logged in.</>}</AccordionSummary>
         <AccordionDetails>
           <TextField 
             label='Organization ID' 
@@ -264,7 +264,7 @@ export default function Home() {
           id="outlined-multiline-flexible"
           label="message"
           multiline
-          maxRows={100}
+          maxRows={1000}
           fullWidth
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
