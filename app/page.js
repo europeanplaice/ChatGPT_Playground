@@ -123,6 +123,7 @@ export default function Home() {
   const [loggedin, setLoggedin] = useState(null);
   const [apiinfo, setApiinfo] = useState({'Organization': "", 'apikey': ""}); 
   const inputRef = useRef(null);
+  const sendbuttonRef = useRef(null);
 
   useEffect(() => {
     setData(() => {
@@ -164,6 +165,13 @@ export default function Home() {
   useEffect(() => {
     checklogin(setLoggedin, apiinfo)
   }, [apiinfo])
+
+  useEffect(() => {
+    if (editid !== null && inputText !== "") {
+      sendbuttonRef.current.scrollIntoView(false);
+      inputRef.current.focus();
+    }
+  }, [editid, inputText])
 
   useEffect(() => {
     if (apiinfo['apikey'] !== "") {
@@ -214,45 +222,43 @@ export default function Home() {
           return (
             <Box key={index}>
               <h2>{d.role}</h2>
-              <Box>
-                {d['role'] === 'user' ? renderTextWithLineBreaks(d.content) : 
-                  <ReactMarkdown
-                  children={d.content}
-                  components={{
-                    code({node, inline, className, children, ...props}) {
-                      const match = /language-(\w+)/.exec(className || '')
-                      return !inline && match ? (
-                        <SyntaxHighlighter
-                          {...props}
-                          children={String(children).replace(/\n$/, '')}
-                          style={dark}
-                          language={match[1]}
-                          PreTag="div"
-                        />
-                      ) : (
-                        <code {...props} className={className}>
-                          {children}
-                        </code>
-                      )
-                    }
-                  }}
-                />
-                }
-              </Box>
-              <Box>
-              </Box>
-              {d['id'] === Math.max(...senddata.map(item => item.id)) ? (
-                <Box justifyContent="flex-end" display="flex" sx={{margin: '1em'}}><Button color='secondary' onClick={() => {
-                  setEditid(d['id'])
-                  setInputText(d['content'])
-                  inputRef.current.focus();
-                  inputRef.current.scrollIntoView();
-                }} variant='contained'
-                  disabled={editid || isSending ? true : false}
-                >{editid ? 'Go to TextField On Bottom' : 'Edit'}</Button>
-                {editid ? <Button color='error' sx={{marginLeft: '1em'}}onClick={() => setEditid(null)} disabled={isSending}>Cancel</Button> : ""}
+              <Box sx={{display: 'flex'}}>
+                <Box sx={{flex: 1}}>
+                  {d['role'] === 'user' ? renderTextWithLineBreaks(d.content) : 
+                    <ReactMarkdown
+                    children={d.content}
+                    components={{
+                      code({node, inline, className, children, ...props}) {
+                        const match = /language-(\w+)/.exec(className || '')
+                        return !inline && match ? (
+                          <SyntaxHighlighter
+                            {...props}
+                            children={String(children).replace(/\n$/, '')}
+                            style={dark}
+                            language={match[1]}
+                            PreTag="div"
+                          />
+                        ) : (
+                          <code {...props} className={className}>
+                            {children}
+                          </code>
+                        )
+                      }
+                    }}
+                  />
+                  }
                 </Box>
-              ): ''}
+                {d['id'] === Math.max(...senddata.map(item => item.id)) ? (
+                  <Box sx={{marginLeft: 'auto'}}><Button color='secondary' onClick={() => {
+                    setEditid(d['id'])
+                    setInputText(d['content'])
+                  }} variant='contained'
+                    disabled={editid || isSending ? true : false}
+                  >{editid ? 'Go to TextField On Bottom' : 'Edit'}</Button>
+                  {editid ? <Button color='error' sx={{marginLeft: '1em'}}onClick={() => setEditid(null)} disabled={isSending}>Cancel</Button> : ""}
+                  </Box>
+                ): <Box></Box>}
+              </Box>
               <hr></hr>
             </Box>
           )
@@ -278,6 +284,7 @@ export default function Home() {
             onClick={() => textsendingButtonEvent(senddata, gotdata, editid, inputText, setSenddata, setGotdata)} variant="contained" disabled={isSending} >{isSending ? "sending..." : "send"}</Button>
         </Box>
       </Box>
+      <Box ref={sendbuttonRef}></Box>
     </Container>
   );
 }
