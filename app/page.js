@@ -16,8 +16,8 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import Block from '@mui/icons-material/Block';
 import Chip from '@mui/material/Chip';
 import ReactMarkdown from 'react-markdown'
-import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter'
-import {dark} from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { dark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
 
 
@@ -60,7 +60,7 @@ async function processText(senddata, gotdata, setGotdata, apiinfo, nextid) {
       }
     }
   );
-  setGotdata((d) => [...d, {"id": nextid, "role": "assistant", "content": response.choices[0].message.content }]);
+  setGotdata((d) => [...d, { "id": nextid, "role": "assistant", "content": response.choices[0].message.content }]);
 }
 
 function getNextId(senddata, gotdata) {
@@ -94,7 +94,7 @@ function textsendingButtonEvent(senddata, gotdata, editid, inputText, setSenddat
 
   setSenddata((prev) => {
     if (editid === null) {
-      return [...prev, {"id": getNextId(senddata, gotdata) ,"role": "user", "content": inputText }]
+      return [...prev, { "id": getNextId(senddata, gotdata), "role": "user", "content": inputText }]
     } else {
       const idx = prev.findIndex((d) => d['id'] === editid);
       let updatedData = [...prev];
@@ -109,7 +109,21 @@ function textsendingButtonEvent(senddata, gotdata, editid, inputText, setSenddat
       return newdata
     })
   }
+}
 
+function EditButton(d, editid, setEditid, setInputText, isSending) {
+  const elem = (children) => <Box sx={{display: 'flex', flexDirection: 'column'}}>{children}</Box>
+  if (!editid) {
+    return elem(
+      <Button color='secondary' sx={{ marginLeft: '1em', marginTop: 'auto'  }} onClick={() => {
+        setEditid(d['id'])
+        setInputText(d['content'])
+      }} variant='contained' disabled={isSending}
+      >Edit</Button>
+    )
+  } else {
+    return elem(<Button color='error' sx={{ marginLeft: '1em', marginTop: 'auto' }} variant='contained' onClick={() => setEditid(null)} disabled={isSending}>Cancel</Button>)
+  }
 }
 
 export default function Home() {
@@ -118,10 +132,10 @@ export default function Home() {
   const [gotdata, setGotdata] = useState([]);
   const [inputText, setInputText] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const [error, setError] = useState(null); 
+  const [error, setError] = useState(null);
   const [editid, setEditid] = useState(null);
   const [loggedin, setLoggedin] = useState(null);
-  const [apiinfo, setApiinfo] = useState({'Organization': "", 'apikey': ""}); 
+  const [apiinfo, setApiinfo] = useState({ 'Organization': "", 'apikey': "" });
   const inputRef = useRef(null);
   const sendbuttonRef = useRef(null);
 
@@ -159,7 +173,7 @@ export default function Home() {
   }, [senddata])
 
   useEffect(() => {
-    setApiinfo(() => ({"apikey": localStorage.getItem('apikey'), "Organization": localStorage.getItem('Organization')}))
+    setApiinfo(() => ({ "apikey": localStorage.getItem('apikey'), "Organization": localStorage.getItem('Organization') }))
   }, [])
 
   useEffect(() => {
@@ -249,15 +263,8 @@ export default function Home() {
                   }
                 </Box>
                 {d['id'] === Math.max(...senddata.map(item => item.id)) ? (
-                  <Box sx={{marginLeft: 'auto'}}><Button color='secondary' onClick={() => {
-                    setEditid(d['id'])
-                    setInputText(d['content'])
-                  }} variant='contained'
-                    disabled={editid || isSending ? true : false}
-                  >{editid ? 'Go to TextField On Bottom' : 'Edit'}</Button>
-                  {editid ? <Button color='error' sx={{marginLeft: '1em'}}onClick={() => setEditid(null)} disabled={isSending}>Cancel</Button> : ""}
-                  </Box>
-                ): <Box></Box>}
+                  EditButton(d, editid, setEditid, setInputText, isSending)
+                ) : <Box></Box>}
               </Box>
               <hr></hr>
             </Box>
@@ -285,6 +292,6 @@ export default function Home() {
         </Box>
       </Box>
       <Box ref={sendbuttonRef}></Box>
-    </Container>
+    </Container >
   );
 }
