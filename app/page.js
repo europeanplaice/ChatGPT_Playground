@@ -122,7 +122,10 @@ function EditButton(d, editid, setEditid, setInputText, isSending) {
       >Edit</Button>
     )
   } else {
-    return elem(<Button color='error' sx={{ marginLeft: '1em', marginTop: 'auto' }} variant='contained' onClick={() => setEditid(null)} disabled={isSending}>Cancel</Button>)
+    return elem(<Button color='error' sx={{ marginLeft: '1em', marginTop: 'auto' }} variant='contained' onClick={() => {
+      setEditid(null)
+      setInputText('')
+    }} disabled={isSending}>Cancel</Button>)
   }
 }
 
