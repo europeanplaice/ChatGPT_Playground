@@ -179,6 +179,8 @@ export default function Home() {
     setApiinfo(() => ({ "apikey": localStorage.getItem('apikey'), "Organization": localStorage.getItem('Organization') }))
   }, [])
 
+  checklogin(setLoggedin, apiinfo)
+
   useEffect(() => {
     checklogin(setLoggedin, apiinfo)
   }, [apiinfo])
