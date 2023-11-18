@@ -17,6 +17,10 @@ import Chip from '@mui/material/Chip';
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { dark } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import Select, { SelectChangeEvent } from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
 
 
 
@@ -40,7 +44,7 @@ const renderTextWithLineBreaks = (text) => {
 };
 
 
-async function processText(senddata, gotdata, setGotdata, apiinfo, nextid) {
+async function processText(senddata, gotdata, setGotdata, apiinfo, nextid, model) {
   const tmp = [...senddata, ...gotdata];
   tmp.sort((item1, item2) => item1.id - item2.id);
 
@@ -54,7 +58,7 @@ async function processText(senddata, gotdata, setGotdata, apiinfo, nextid) {
         "Content-Type": "application/json"
       },
       data: {
-        "model": "gpt-4-1106-preview",
+        "model": `${model}`,
         "messages": tmp.map(({ id, ...rest }) => rest)
       }
     }
@@ -130,6 +134,7 @@ function EditButton(d, editid, setEditid, setInputText, isSending) {
 
 export default function Home() {
   const [data, setData] = useState([]);
+  const [model, setModel] = useState("gpt-4-1106-preview");
   const [senddata, setSenddata] = useState([]);
   const [gotdata, setGotdata] = useState([]);
   const [inputText, setInputText] = useState("");
@@ -153,7 +158,7 @@ export default function Home() {
     setIsSending(true);
     setError(null);
     try {
-      await processText(senddata, gotdata, setGotdata, apiinfo, getNextId(senddata, gotdata));
+      await processText(senddata, gotdata, setGotdata, apiinfo, getNextId(senddata, gotdata), model);
     } catch (error) {
       setError(error.message);
       setSenddata((prev) => {
@@ -217,21 +222,37 @@ export default function Home() {
           expandIcon={<ExpandMoreIcon />}
         ><span style={{marginLeft: '4px', marginRight: '2em', fontWeight: 700}}>API Config</span> {loggedin ? <><CheckCircleOutlineIcon color='success' sx={{marginRight: '4px'}}/>Logged in!</> : <><Block color='error' sx={{marginRight: '4px'}}/>Not logged in.</>}</AccordionSummary>
         <AccordionDetails>
-          <TextField 
-            label='Organization ID' 
-            type="text" 
-            sx={{marginRight: '4px', marginBottom: '8px'}} 
-            value={apiinfo['Organization']}
-            onChange={(e) => {setApiinfo((info) => ({...info, "Organization": e.target.value}))}}
-            ></TextField>
-          <TextField 
-            label='API KEY' 
-            type="password"
-            sx={{marginBottom: '8px'}}
-            value={apiinfo['apikey']}
-            onChange={(e) => setApiinfo((info) => ({...info, "apikey": e.target.value}))}
-            ></TextField>
-            <Box></Box>
+          <Box>
+            <TextField
+              label='Organization ID'
+              type="text"
+              sx={{marginRight: '4px', marginBottom: '8px'}}
+              value={apiinfo['Organization']}
+              onChange={(e) => {setApiinfo((info) => ({...info, "Organization": e.target.value}))}}
+              ></TextField>
+            <TextField
+              label='API KEY'
+              type="password"
+              sx={{marginBottom: '8px'}}
+              value={apiinfo['apikey']}
+              onChange={(e) => setApiinfo((info) => ({...info, "apikey": e.target.value}))}
+              ></TextField>
+              <Box style={{marginTop: "1em"}}>
+                <FormControl>
+                  <InputLabel id="demo-simple-select-label">Model</InputLabel>
+                  <Select
+                    onChange={(e) => setModel(e.target.value)}
+                    value={model}
+                    label="Model"
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                  >
+                    <MenuItem value="gpt-4-1106-preview">gpt-4-1106-preview</MenuItem>
+                    <MenuItem value="gpt-3.5-turbo-1106">gpt-3.5-turbo-1106</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+          </Box>
         </AccordionDetails>
       </Accordion>
       {error && <Alert severity="error">{error}</Alert>}
