@@ -1,6 +1,7 @@
 {
   "name": "playground",
   "version": "0.1.0",
+  "homepage": "https://europeanplaice.github.io/ChatGPT_Playground",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.11.1",
