@@ -21,6 +21,10 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
+import IconButton from '@mui/material/IconButton';
+import Snackbar from '@mui/material/Snackbar';
+import CloseIcon from '@mui/icons-material/Close';
+import FileCopyIcon from '@mui/icons-material/FileCopy';
 
 
 
@@ -132,6 +136,47 @@ function EditButton(d, editid, setEditid, setInputText, isSending) {
   }
 }
 
+function CopyButton({textToCopy}) {
+  const [open, setOpen] = useState(false);
+
+  const handleClick = async () => {
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setOpen(true);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpen(false);
+  };
+
+  return (
+    <div>
+      <IconButton onClick={handleClick}>
+        <FileCopyIcon />
+      </IconButton>
+      <Snackbar
+        open={open}
+        autoHideDuration={6000}
+        onClose={handleClose}
+        message="Text copied!"
+        action={
+          <React.Fragment>
+            <IconButton size="small" aria-label="close" color="inherit" onClick={handleClose}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </React.Fragment>
+        }
+      />
+    </div>
+  );
+}
+
 export default function Home() {
   const [data, setData] = useState([]);
   const [model, setModel] = useState("gpt-4-1106-preview");
@@ -179,10 +224,6 @@ export default function Home() {
     }
   }, [senddata])
 
-  useEffect(() => {
-    setApiinfo(() => ({ "apikey": localStorage.getItem('apikey'), "Organization": localStorage.getItem('Organization') }))
-  }, [])
-
   checklogin(setLoggedin, apiinfo)
 
   useEffect(() => {
@@ -195,18 +236,6 @@ export default function Home() {
       inputRef.current.focus();
     }
   }, [editid, inputText])
-
-  useEffect(() => {
-    if (apiinfo['apikey'] !== "") {
-      localStorage.setItem("apikey", apiinfo['apikey'])
-    }
-  }, [apiinfo['apikey']])
-
-  useEffect(() => {
-    if (apiinfo['Organization'] !== "") {
-      localStorage.setItem("Organization", apiinfo['Organization'])
-    }
-  }, [apiinfo['Organization']])
 
   const enterPost = (keyEvent) => {
     if (keyEvent.key === 'Enter' && (keyEvent.ctrlKey || keyEvent.metaKey)) {
@@ -261,6 +290,7 @@ export default function Home() {
           return (
             <Box key={index}>
               <h2>{d.role}</h2>
+              <CopyButton textToCopy={d.content}/>
               <Box sx={{display: 'flex'}}>
                 <Box sx={{flex: 1, overflowX: 'auto'}}>
                   {d['role'] === 'user' ? renderTextWithLineBreaks(d.content) : 
