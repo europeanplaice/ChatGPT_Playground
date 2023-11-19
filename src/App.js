@@ -10,7 +10,6 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Typography } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import Block from '@mui/icons-material/Block';
 import Chip from '@mui/material/Chip';
@@ -246,10 +245,10 @@ export default function Home() {
   return (
     <Container maxWidth="md">
       <h1>ChatGPT Playground</h1>
-      <Accordion sx={{marginBottom: '1em', maxWidth: '60%'}} elevation={2}>
+      <Accordion sx={{marginBottom: '2em'}} elevation={2}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
-        ><span style={{marginLeft: '4px', marginRight: '2em', fontWeight: 700}}>API Config</span> {loggedin ? <><CheckCircleOutlineIcon color='success' sx={{marginRight: '4px'}}/>Logged in!</> : <><Block color='error' sx={{marginRight: '4px'}}/>Not logged in.</>}</AccordionSummary>
+        ><span style={{marginLeft: '4px', marginRight: '2em', fontWeight: 700}}>API Config</span> {loggedin ? <><CheckCircleOutlineIcon color='success' sx={{marginRight: '4px'}}/>Successfully logged in!</> : <><Block color='error' sx={{marginRight: '4px'}}/>Not logged in. Please set API key.</>}</AccordionSummary>
         <AccordionDetails>
           <Box>
             <TextField
@@ -281,6 +280,7 @@ export default function Home() {
                   </Select>
                 </FormControl>
               </Box>
+              <p>Your API key is stored exclusively in the browser and will only be transmitted to the OpenAI server.</p>
           </Box>
         </AccordionDetails>
       </Accordion>
@@ -328,7 +328,6 @@ export default function Home() {
         {isSending ? <CircularProgress color="secondary" /> : ""}
       </Box>
       <Box>
-        <Typography sx={{marginBottom: '1.5em', marginTop: '2em'}}>{editid ? <Chip label="Edit Mode" /> : ''}</Typography>
         <TextField
           id="outlined-multiline-flexible"
           inputRef={inputRef}
